@@ -3,10 +3,10 @@ from torch import nn
 from torch.nn import functional as F
 
 class Conv2d(nn.Module):
-    def __init__(self, cin, cout, kernel_size, stride=1, padding="same", residual=False, *args, **kwargs):
+    def __init__(self, cin, cout, kernel_size, stride=1, padding="same", residual=False, bias=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.conv_block = nn.Sequential(
-                            nn.Conv2d(cin, cout, kernel_size, stride, padding),
+                            nn.Conv2d(cin, cout, kernel_size, stride, padding, bias=bias),
                             nn.BatchNorm2d(cout)
                             )
         self.act = nn.ReLU()

@@ -27,7 +27,7 @@ class DSNet(nn.Module):
 			),
 		])
 
-		self.embedding = nn.Conv2d(512, 1, kernel_size=1, stride=1, padding="same", bias=False)
+		self.embedding = Conv2d(512, 1, kernel_size=1, stride=1, padding="same", bias=False)
 
 		#self.softmax = torch.nn.Softmax(2)
 
@@ -37,21 +37,24 @@ class DSNet(nn.Module):
 
 		embs = self.embedding(x)
 		#print(embs.shape)
-		alpha = F.softmax(embs.view(embs.size()[0], 1, -1)).view_as(embs)
+		alpha = F.softmax(embs.view(embs.size()[0], 1, -1), dim=2).view_as(embs)
 		#print(alpha.shape)
 		Mul = torch.mul(x, alpha)
 		#print(Mul.shape)
 		y = torch.sum(Mul, dim=(2,3))
+		#y = F.relu(y)
 		#print(y.shape)
 		#print(y)
-		return y
+		return alpha, y
 
-	def cal_loss(self, x1, x2):
-		p1 = self.forward(x1)
-		p2 = self.forward(x2)
+	def cal_loss(self, x1, x2, device):
+		_, p1 = self.forward(x1)
+		_, p2 = self.forward(x2)
 		logloss = nn.BCELoss()
 
 		d = F.cosine_similarity(p1, p2, dim=1)
 		#print(d)
 		y = torch.zeros(d.shape)
-		return logloss(d, y)
+		y = y.to(device)
+		loss = logloss(d, y) 
+		return loss

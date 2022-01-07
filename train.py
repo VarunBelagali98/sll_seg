@@ -51,7 +51,7 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 
 			# forward + backward + optimize
 			#outputs = model(inputs)
-			loss = model.cal_loss(x1, x2)
+			loss = model.cal_loss(x1, x2, device)
 			loss.backward()
 			optimizer.step()
 
@@ -91,7 +91,7 @@ def validate(val_data_loader, epoch, device, model):
 		x2 = x2.to(device)
 
 		model.eval()
-		val_loss = model.cal_loss(x1, x2)
+		val_loss = model.cal_loss(x1, x2, device)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
 		
 		prog_bar.set_description('loss: {:.4f}'.format(running_loss))

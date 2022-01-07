@@ -19,18 +19,26 @@ class load_data(torch.utils.data.Dataset):
 			videos_indx = self.get_files(fold,'val', per, seed_select)
 		if mode == 2:
 			videos_indx = self.get_files(fold,'test')
+
+		num = 40
+		datalist = []
+		for i in range(0, num, 2):
+			tmp = [(vid, i) for vid in videos_indx]
+			datalist.extend(tmp)
 		
 		#random.shuffle(images_indx)
-		self.datalist = videos_indx
+		self.datalist = datalist
 
 	def __len__(self):
 		return int(len(self.datalist))
 
 	def __getitem__(self, idx):
 		s = 224
-		image_list = np.genfromtxt(self.Vid_to_IMG_PATH+self.datalist[idx]+'.txt',dtype='str')
-		img1_idx = image_list[0]
-		img2_idx = image_list[1]
+		vid_id = self.datalist[idx][0]
+		offset = self.datalist[idx][1]
+		image_list = np.genfromtxt(self.Vid_to_IMG_PATH+ vid_id +'.txt',dtype='str')
+		img1_idx = image_list[offset]
+		img2_idx = image_list[offset+1]
 
 		fname = self.TRAINING_PATH + img1_idx + '.png'
 		img1 = cv2.imread(fname)
