@@ -23,12 +23,7 @@ class DSNet(nn.Module):
 			nn.Sequential(Conv2d(128, 256, kernel_size=3),
 			Conv2d(256, 256, kernel_size=3),
 			nn.MaxPool2d(2, stride=2),
-			),
-
-			nn.Sequential(Conv2d(256, 512, kernel_size=3),
-			Conv2d(512, 512, kernel_size=3),
-			nn.MaxPool2d(2, stride=2),
-			Conv2d(512, 512, kernel_size=1),
+			Conv2d(256, 512, kernel_size=3)
 			),
 		])
 
@@ -41,9 +36,14 @@ class DSNet(nn.Module):
 			x = f(x)
 
 		embs = self.embedding(x)
+		#print(embs.shape)
 		alpha = F.softmax(embs.view(embs.size()[0], 1, -1)).view_as(embs)
-		Mul = torch.mul(embs, alpha)
+		#print(alpha.shape)
+		Mul = torch.mul(x, alpha)
+		#print(Mul.shape)
 		y = torch.sum(Mul, dim=(2,3))
+		#print(y.shape)
+		#print(y)
 		return y
 
 	def cal_loss(self, x1, x2):
@@ -52,5 +52,6 @@ class DSNet(nn.Module):
 		logloss = nn.BCELoss()
 
 		d = F.cosine_similarity(p1, p2, dim=1)
-		y = torch.ones(d.shape)
+		#print(d)
+		y = torch.zeros(d.shape)
 		return logloss(d, y)
