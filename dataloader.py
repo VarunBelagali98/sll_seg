@@ -11,7 +11,7 @@ class load_data(torch.utils.data.Dataset):
 		random.seed(0)
 		self.TRAINING_PATH = TRAINING_PATH
 		self.FOLD_PATH = FOLD_PATH
-        self.Vid_to_IMG_PATH = Vid_to_IMG_PATH
+		self.Vid_to_IMG_PATH = Vid_to_IMG_PATH
 
 		if mode == 0:
 			videos_indx = self.get_files(fold,'train', per, seed_select)
@@ -28,9 +28,9 @@ class load_data(torch.utils.data.Dataset):
 
 	def __getitem__(self, idx):
 		s = 224
-        image_list = np.genfromtxt(self.Vid_to_IMG_PATH+self.datalist[idx]+'.txt',dtype='str')
-        img1_idx = image_list[0]
-        img2_idx = image_list[1]
+		image_list = np.genfromtxt(self.Vid_to_IMG_PATH+self.datalist[idx]+'.txt',dtype='str')
+		img1_idx = image_list[0]
+		img2_idx = image_list[1]
 
 		fname = self.TRAINING_PATH + img1_idx + '.png'
 		img1 = cv2.imread(fname)
@@ -43,7 +43,7 @@ class load_data(torch.utils.data.Dataset):
 		img2 = cv2.resize(img2, ( s , s ))
 			
 		img1 =img1[:,:,np.newaxis]/255.0
-        img2 =img2[:,:,np.newaxis]/255.0
+		img2 =img2[:,:,np.newaxis]/255.0
 
 		img1 = np.transpose(img1, (2, 0, 1))
 		img2 = np.transpose(img2, (2, 0, 1))

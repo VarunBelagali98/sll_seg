@@ -84,8 +84,8 @@ def validate(val_data_loader, epoch, device, model):
 	loss_list = []
 	for step, x in prog_bar:
 		# Move data to CUDA device
-        x = x.to(device)
-		
+		x = x.to(device)
+
 		model.eval()
 		val_loss = model.cal_loss(x)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 	TRAINING_PATH = args.root_data
 	FOLD_PATH = args.fold_data + "fold_struct/fold"
 	ROOT_WEIGHTPATH = args.weight_root
-    Vid_to_IMG_PATH = args.fold_data + "videoId_to_imgIdx/"
+	Vid_to_IMG_PATH = args.fold_data + "videoId_to_imgIdx/"
 	
 	WEIGTH_PATH = ROOT_WEIGHTPATH + model_name + ".pth"
 
