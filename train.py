@@ -38,18 +38,20 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 		running_loss = 0.0
 		print("Epoch {} training".format(epoch))
 		prog_bar = tqdm(enumerate(train_data_loader))
-		for step, x in prog_bar:
+		for step, data in prog_bar:
 			model.train()
 
 			# get the inputs; data is a list of [inputs, labels]
-			x = x.to(device)
+			x1, x2 = data[0], data[1]
+			x1 = x1.to(device)
+			x2 = x2.to(device)
 
 			# zero the parameter gradients
 			optimizer.zero_grad()
 
 			# forward + backward + optimize
 			#outputs = model(inputs)
-			loss = model.cal_loss(x)
+			loss = model.cal_loss(x1, x2)
 			loss.backward()
 			optimizer.step()
 
@@ -82,12 +84,14 @@ def validate(val_data_loader, epoch, device, model):
 	print("Epoch {} validation".format(epoch))
 	prog_bar = tqdm(enumerate(val_data_loader))
 	loss_list = []
-	for step, x in prog_bar:
+	for step, data in prog_bar:
 		# Move data to CUDA device
-		x = x.to(device)
+		x1, x2 = data[0], data[1]
+		x1 = x1.to(device)
+		x2 = x2.to(device)
 
 		model.eval()
-		val_loss = model.cal_loss(x)
+		val_loss = model.cal_loss(x1, x2)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
 		
 		prog_bar.set_description('loss: {:.4f}'.format(running_loss))

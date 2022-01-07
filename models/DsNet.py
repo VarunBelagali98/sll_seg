@@ -37,22 +37,20 @@ class DSNet(nn.Module):
 		#self.softmax = torch.nn.Softmax(2)
 
 	def forward(self, x):
-		x = x[0, :, :, :, :]
 		for f in self.encoder_blocks:
 			x = f(x)
 
 		embs = self.embedding(x)
-		alpha = F.softmax(embs.view(em.size()[0], 1, -1)).view_as(embs)
-		Mul = torch.mul(em, alpha)
+		alpha = F.softmax(embs.view(embs.size()[0], 1, -1)).view_as(embs)
+		Mul = torch.mul(embs, alpha)
 		y = torch.sum(Mul, dim=(2,3))
 		return y
 
-	def cal_loss(self, X):
-		pred = self.forward(X)
+	def cal_loss(self, x1, x2):
+		p1 = self.forward(x1)
+		p2 = self.forward(x2)
 		logloss = nn.BCELoss()
 
-		p1 = pred[0,:]
-		p2 = pred[1,:]
-		d = F.cosine_similarity(p1, p2, dim=0)
-		y = torch.ones(0)
-		return logloss(d.unsqueeze(0), y)
+		d = F.cosine_similarity(p1, p2, dim=1)
+		y = torch.ones(d.shape)
+		return logloss(d, y)
