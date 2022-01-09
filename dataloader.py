@@ -45,8 +45,9 @@ class load_data(torch.utils.data.Dataset):
 		img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 		img1 = cv2.resize(img1, ( s , s ))
 
-		fname = self.TRAINING_PATH + img2_idx + '.png'
+		fname = self.TRAINING_PATH + img1_idx + '.png'  # same image
 		img2 = cv2.imread(fname)
+		img2 = cv2.rotate(img2, cv2.cv2.ROTATE_90_CLOCKWISE) # rotate 
 		img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 		img2 = cv2.resize(img2, ( s , s ))
 			

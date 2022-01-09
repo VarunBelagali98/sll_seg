@@ -54,7 +54,7 @@ class DSNet(nn.Module):
 
 		d = F.cosine_similarity(p1, p2, dim=1)
 		#print(d)
-		y = torch.zeros(d.shape)
+		y = torch.ones(d.shape) # ones for flip sim
 		y = y.to(device)
 		loss = logloss(d, y) 
 		return loss
