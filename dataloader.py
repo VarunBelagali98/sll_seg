@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import random
 import math
+import imutils
 
 class load_data(torch.utils.data.Dataset):
 	def __init__(self,fold,mode=0, per=None, seed_select=None, TRAINING_PATH=None, FOLD_PATH=None, Vid_to_IMG_PATH=None):
@@ -47,7 +48,8 @@ class load_data(torch.utils.data.Dataset):
 
 		fname = self.TRAINING_PATH + img1_idx + '.png'  # same image
 		img2 = cv2.imread(fname)
-		img2 = cv2.rotate(img2, cv2.cv2.ROTATE_90_CLOCKWISE) # rotate 
+		#img2 = cv2.rotate(img2, cv2.cv2.ROTATE_90_CLOCKWISE) # rotate
+		img2 = imutils.rotate(img2, random.randint(0, 360)) 
 		img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 		img2 = cv2.resize(img2, ( s , s ))
 			
