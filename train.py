@@ -1,12 +1,13 @@
 import torch
 import torchvision
 import torch.optim as optim
-from dataloader import load_data
+#from dataloader import load_data
+from dataloaders.ReNet_dataloader import load_data
 from torch.utils import data as data_utils
 from tqdm import tqdm
 from torchsummary import summary
 import argparse
-from models.DsNet import DSNet
+from models.ReNet import ReNet
 
 use_cuda = torch.cuda.is_available()
 
@@ -51,7 +52,7 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 
 			# forward + backward + optimize
 			#outputs = model(inputs)
-			loss = model.cal_loss(x1, x2, device)
+			loss = model.cal_loss(x1, x2)
 			loss.backward()
 			optimizer.step()
 
@@ -91,7 +92,7 @@ def validate(val_data_loader, epoch, device, model):
 		x2 = x2.to(device)
 
 		model.eval()
-		val_loss = model.cal_loss(x1, x2, device)
+		val_loss = model.cal_loss(x1, x2)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
 		
 		prog_bar.set_description('loss: {:.4f}'.format(running_loss))
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 	model_name = args.model_name
 	batch_size = args.batch_size
 	TRAINING_PATH = args.root_data
-	FOLD_PATH = args.fold_data + "fold_struct/fold"
+	FOLD_PATH = args.fold_data + 'fold_files/annfiles_fold' #"fold_struct/fold"
 	ROOT_WEIGHTPATH = args.weight_root
 	Vid_to_IMG_PATH = args.fold_data + "videoId_to_imgIdx/"
 	
@@ -115,8 +116,11 @@ if __name__ == "__main__":
 
 
 	# Dataset and Dataloader setup
-	train_dataset = load_data(fold, 0, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH, Vid_to_IMG_PATH=Vid_to_IMG_PATH)
-	val_dataset = load_data(fold, 1, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH, Vid_to_IMG_PATH=Vid_to_IMG_PATH)
+	#train_dataset = load_data(fold, 0, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH, Vid_to_IMG_PATH=Vid_to_IMG_PATH)
+	#val_dataset = load_data(fold, 1, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH, Vid_to_IMG_PATH=Vid_to_IMG_PATH)
+
+	train_dataset = load_data(fold, 0, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH)
+	val_dataset = load_data(fold, 1, per, seed_select=seed_select, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH)
 
 	train_data_loader = data_utils.DataLoader(
 		train_dataset, batch_size=batch_size, shuffle=True)
@@ -127,8 +131,8 @@ if __name__ == "__main__":
 	device = torch.device("cuda" if use_cuda else "cpu")
 
 	# Model
-	model = DSNet().to(device)
-	summary(model, (1, 224, 224))
+	model = ReNet().to(device)
+	#summary(model, (1, 224, 224))
 	print('total trainable params {}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
 	optimizer = torch.optim.Adam(model.parameters())
