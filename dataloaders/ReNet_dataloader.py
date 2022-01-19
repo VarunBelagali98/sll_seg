@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import random
 import math
+import random
 
 class load_data(torch.utils.data.Dataset):
 	def __init__(self,fold,mode=0, per=None, seed_select=None, TRAINING_PATH=None, FOLD_PATH=None):
@@ -18,6 +19,7 @@ class load_data(torch.utils.data.Dataset):
 			images_indx = self.get_files(fold,'val', per, seed_select)
 		if mode == 2:
 			images_indx = self.get_files(fold,'test')
+		random.seed(0)
 		
 		#random.shuffle(images_indx)
 		self.datalist = images_indx
@@ -36,7 +38,11 @@ class load_data(torch.utils.data.Dataset):
 
 		imgc = img.copy()
 
-		imgc[0:s:10, 0:s:10, :] = 0
+		#imgc[0:s:10, 0:s:10, :] = 0
+		bx = random.randint(10,112)
+		by = random.randint(10,112)
+
+		imgc[bx:bx+100, by:by+100, :] = 0
 
 		img = np.transpose(img, (2, 0, 1))
 		imgc = np.transpose(imgc, (2, 0, 1))

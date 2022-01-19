@@ -11,29 +11,46 @@ class ReNet(nn.Module):
 
 		self.encoder_blocks = nn.ModuleList([
 			nn.Sequential(Conv2d(1, 64, kernel_size=3),
-			Conv2d(64, 64, kernel_size=3, residual=True),),
+			Conv2d(64, 64, kernel_size=3),),
 			
 			nn.Sequential(nn.MaxPool2d(2, stride=2),
 			Conv2d(64, 128, kernel_size=3),
-			Conv2d(128, 128, kernel_size=3, residual=True),),
+			Conv2d(128, 128, kernel_size=3)),
 
 			nn.Sequential(nn.MaxPool2d(2, stride=2),
-			Conv2d(128, 256, kernel_size=3)),
+			Conv2d(128, 256, kernel_size=3),
+			Conv2d(256, 256, kernel_size=3)),
+
+			nn.Sequential(nn.MaxPool2d(2, stride=2),
+			Conv2d(256, 512, kernel_size=3),
+			Conv2d(512, 512, kernel_size=3)),
+
+			nn.Sequential(nn.MaxPool2d(2, stride=2),
+			Conv2d(512, 1024, kernel_size=3)),
 		])
 
 
 		self.decoder_blocks = nn.ModuleList([
-			nn.Sequential(Conv2d(256, 128, kernel_size=3),
+			nn.Sequential(Conv2d(1024, 512, kernel_size=3),
 			nn.Upsample( scale_factor=(2,2))
 			),
+
+			nn.Sequential(Conv2d(1024, 512, kernel_size=3),
+			Conv2d(512, 256, kernel_size=3),
+			nn.Upsample(scale_factor=(2,2))
+			),
+
+			nn.Sequential(Conv2d(512, 256, kernel_size=3),
+			Conv2d(256, 128, kernel_size=3),
+			nn.Upsample(scale_factor=(2,2))#, scale_factor=(2,2))
+			),
+
 			nn.Sequential(Conv2d(256, 128, kernel_size=3),
-			Conv2d(128, 128, kernel_size=3, residual=True),
 			Conv2d(128, 64, kernel_size=3),
 			nn.Upsample(scale_factor=(2,2))#, scale_factor=(2,2))
 			),
 
 			nn.Sequential(Conv2d(128, 64, kernel_size=3),
-			Conv2d(64, 64, kernel_size=3, residual=True),
 			Conv2d(64, 64, kernel_size=3),
 			)
 			])
@@ -44,11 +61,11 @@ class ReNet(nn.Module):
 
 		self.rec_encoder_blocks = nn.ModuleList([
 			nn.Sequential(Conv2d(6, 64, kernel_size=3),
-			Conv2d(64, 64, kernel_size=3, residual=True),),
+			Conv2d(64, 64, kernel_size=3),),
 			
 			nn.Sequential(nn.MaxPool2d(2, stride=2),
 			Conv2d(64, 128, kernel_size=3),
-			Conv2d(128, 128, kernel_size=3, residual=True),),
+			Conv2d(128, 128, kernel_size=3),),
 
 			nn.Sequential(nn.MaxPool2d(2, stride=2),
 			Conv2d(128, 256, kernel_size=3)),
@@ -59,13 +76,13 @@ class ReNet(nn.Module):
 			nn.Sequential(Conv2d(256, 128, kernel_size=3),
 			nn.Upsample( scale_factor=(2,2))
 			),
-			nn.Sequential(Conv2d(256, 128, kernel_size=3),
+			nn.Sequential(Conv2d(128, 128, kernel_size=3),
 			Conv2d(128, 128, kernel_size=3, residual=True),
 			Conv2d(128, 64, kernel_size=3),
 			nn.Upsample(scale_factor=(2,2))#, scale_factor=(2,2))
 			),
 
-			nn.Sequential(Conv2d(128, 64, kernel_size=3),
+			nn.Sequential(Conv2d(64, 64, kernel_size=3),
 			Conv2d(64, 64, kernel_size=3, residual=True),
 			Conv2d(64, 64, kernel_size=3),
 			)
@@ -98,23 +115,12 @@ class ReNet(nn.Module):
 
 		x1 = torch.cat((seg_out, xc), dim=1)
 
-		feats2 = []
 		x = x1
 		for f in self.rec_encoder_blocks:
 			x = f(x)
-			feats2.append(x)
-		feats2.pop()
 
 		for f in self.rec_decoder_blocks:
 			x = f(x)
-			try:
-				if len(feats2) > 0:
-					x = torch.cat((x, feats2[-1]), dim=1)
-					feats2.pop()
-			except Exception as e:
-				print(x.size())
-				print(feats2[-1].size())
-				raise e
 		
 		rec_out = self.output_block(x)
 		
