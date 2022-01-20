@@ -92,9 +92,11 @@ class ReNet(nn.Module):
 			nn.BatchNorm2d(1),
 			nn.Sigmoid())
 
-	def forward(self, x, xc):
+	def forward(self, x, mask):
 		feats = []
-	
+
+		xc = torch.mul(x, mask)
+
 		for f in self.encoder_blocks:
 			x = f(x)
 			feats.append(x)
@@ -126,8 +128,11 @@ class ReNet(nn.Module):
 		
 		return seg_out, rec_out
 
-	def cal_loss(self, x, xc):
-		_, p = self.forward(x, xc)
+	def cal_loss(self, x, mask):
+		inv_mask = 1 - mask
+		xm = torch.mul(x, inv_mask)
+		_, p = self.forward(x, mask)
+		pm = torch.mul(p, inv_mask)
 		cal_loss = nn.MSELoss()
-		loss = cal_loss(p, x)
+		loss = cal_loss(pm, xm)
 		return loss

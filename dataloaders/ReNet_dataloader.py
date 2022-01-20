@@ -36,21 +36,23 @@ class load_data(torch.utils.data.Dataset):
 
 		img =img_in[:,:,np.newaxis]/255.0
 
-		imgc = img.copy()
+		#imgc = img.copy()
 
 		#imgc[0:s:10, 0:s:10, :] = 0
 		bx = random.randint(10,112)
 		by = random.randint(10,112)
 
-		imgc[bx:bx+100, by:by+100, :] = 0
+		#imgc[bx:bx+100, by:by+100, :] = 0
+		mask = np.ones(img.shape)
+		mask[bx:bx+100, by:by+100, :] = 0
 
 		img = np.transpose(img, (2, 0, 1))
-		imgc = np.transpose(imgc, (2, 0, 1))
+		mask = np.transpose(mask, (2, 0, 1))
 
 		img = torch.FloatTensor(img)
-		imgc = torch.FloatTensor(imgc)
+		mask = torch.FloatTensor(mask)
 
-		return (img, imgc)
+		return (img, mask)
 
 	def get_files(self, fold,state,per=None, seed_select=None):
 		random.seed(0)
