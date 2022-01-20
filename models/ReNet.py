@@ -134,5 +134,5 @@ class ReNet(nn.Module):
 		_, p = self.forward(x, mask)
 		pm = torch.mul(p, inv_mask)
 		cal_loss = nn.MSELoss()
-		loss = cal_loss(pm, xm)
+		loss = 10000 * cal_loss(pm, xm)
 		return loss
