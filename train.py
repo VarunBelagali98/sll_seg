@@ -2,12 +2,12 @@ import torch
 import torchvision
 import torch.optim as optim
 #from dataloader import load_data
-from dataloaders.ReNet_dataloader import load_data
+from dataloaders.DetNet_dataloader import load_data
 from torch.utils import data as data_utils
 from tqdm import tqdm
 from torchsummary import summary
 import argparse
-from models.ReNet import ReNet
+from models.DetNet import DetNet
 
 use_cuda = torch.cuda.is_available()
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	model_name = args.model_name
 	batch_size = args.batch_size
 	TRAINING_PATH = args.root_data
-	FOLD_PATH = args.fold_data + 'fold_files/annfiles_fold' #"fold_struct/fold"
+	FOLD_PATH = args.fold_data + 'classification/'       #annfiles_fold' #"fold_struct/fold"
 	ROOT_WEIGHTPATH = args.weight_root
 	Vid_to_IMG_PATH = args.fold_data + "videoId_to_imgIdx/"
 	
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 	device = torch.device("cuda" if use_cuda else "cpu")
 
 	# Model
-	model = ReNet().to(device)
+	model = DetNet().to(device)
 	#summary(model, (1, 224, 224))
 	print('total trainable params {}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
