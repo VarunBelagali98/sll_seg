@@ -14,7 +14,7 @@ class DetNet(nn.Module):
 		super(DetNet, self).__init__()
 
 		self.encoder_blocks = nn.ModuleList([
-			nn.BatchNorm2d(1),
+			#nn.BatchNorm2d(1),
 			nn.Sequential(Conv2d(1, 64, kernel_size=3),
 			Conv2d(64, 64, kernel_size=3),
 			nn.MaxPool2d(2, stride=2),
