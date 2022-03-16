@@ -58,7 +58,7 @@ class DetNet(nn.Module):
 		for i in range(0, len(enc)):
 			embs = self.embeddings[i](enc[i])
 			alpha = F.softmax(embs.view(embs.size()[0], 1, -1), dim=2).view_as(embs)
-			Mul = torch.mul(x, alpha)
+			Mul = torch.mul(enc[i], alpha)
 			y = torch.sum(Mul, dim=(2,3))
 			reps.append(y)
 			alphas.append(alpha)
