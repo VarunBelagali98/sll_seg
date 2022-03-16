@@ -47,25 +47,28 @@ def save_samples(test_data_loader, device, model):
 		x1 = x1.to(device)
 		x2 = x2.to(device)
 
-		pred, _ = model.forward(x1)
+		preds, _ = model.forward(x1)
 
 		x1 = x1.cpu().detach().numpy()
-		pred = pred.cpu().detach().numpy()
-		pred = pred > (1.0 / (pred.shape[-1] * pred.shape[-2]))
-		#pred = np.argmax(pred, axis=1)
-		pred = pred.astype(int)
-
-		for i in range(x1.shape[0]):
-			img = x1[i, 0, :, :] * 255
-			img = img.astype(int)
-			seg = pred[i, 0, :, :] * 255
-			cv2.imwrite('./samples/'+str(count)+".png", img)
-			cv2.imwrite('./samples/'+str(count)+"_seg.png", seg)
-			#plt.imsave('./samples/'+str(count)+"_seg.png", seg)
-			count = count + 1
 		
-		if count > 100:
-			return
+		for pred_i in range(len(preds)):
+			pred = preds[pred_i]
+			pred = pred.cpu().detach().numpy()
+			pred = pred > (1.0 / (pred.shape[-1] * pred.shape[-2]))
+			#pred = np.argmax(pred, axis=1)
+			pred = pred.astype(int)
+
+			for i in range(x1.shape[0]):
+				img = x1[i, 0, :, :] * 255
+				img = img.astype(int)
+				seg = pred[i, 0, :, :] * 255
+				cv2.imwrite('./samples/'+str(count)+".png", img)
+				cv2.imwrite('./samples/'+str(count)+"_seg"+str(pred_i) +".png", seg)
+				#plt.imsave('./samples/'+str(count)+"_seg.png", seg)
+				count = count + 1
+		
+			if count > 100:
+				return
 
 if __name__ == "__main__":
 	fold = args.fold
