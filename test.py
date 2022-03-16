@@ -65,7 +65,8 @@ def save_samples(test_data_loader, device, model):
 				cv2.imwrite('./samples/'+str(count)+".png", img)
 				cv2.imwrite('./samples/'+str(count)+"_seg"+str(pred_i) +".png", seg)
 				#plt.imsave('./samples/'+str(count)+"_seg.png", seg)
-				count = count + 1
+				if pred_i == 0:
+					count = count + 1
 		
 			if count > 100:
 				return
