@@ -10,7 +10,7 @@ import argparse
 import numpy as np 
 import cv2
 import os
-from models.DetNet import DetNet
+from models.DetNet2 import DetNet
 import matplotlib.pyplot as plt 
 
 use_cuda = torch.cuda.is_available()
