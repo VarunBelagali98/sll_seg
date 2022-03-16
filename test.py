@@ -10,7 +10,7 @@ import argparse
 import numpy as np 
 import cv2
 import os
-from models.DetNet2 import DetNet
+from models.DetNet1 import DetNet
 import matplotlib.pyplot as plt 
 
 use_cuda = torch.cuda.is_available()
@@ -51,8 +51,8 @@ def save_samples(test_data_loader, device, model):
 
 		x1 = x1.cpu().detach().numpy()
 		
-		for pred_i in range(len(preds)):
-			pred = preds[pred_i]
+		for pred_i in range(1):
+			pred = preds
 			pred = pred.cpu().detach().numpy()
 			pred = pred > (1.0 / (pred.shape[-1] * pred.shape[-2]))
 			#pred = np.argmax(pred, axis=1)
