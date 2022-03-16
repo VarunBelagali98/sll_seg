@@ -7,7 +7,7 @@ from torch.utils import data as data_utils
 from tqdm import tqdm
 from torchsummary import summary
 import argparse
-from models.DetNet import DetNet
+from models.DetNet2 import DetNet
 
 use_cuda = torch.cuda.is_available()
 
