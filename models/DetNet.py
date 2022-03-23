@@ -83,7 +83,7 @@ class DetNet(nn.Module):
 			gt = Y[i, :, :, :]
 			pred = np.transpose(pred, (1, 2, 0))
 			gt = np.transpose(gt, (1, 2, 0))
-			pred = cv2.resize(pred, (gt.shape[0], gt.shape[1]))
+			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))
 
 			print(pred.shape, gt.shape)
 
