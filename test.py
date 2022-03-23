@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torch.optim as optim
 #from dataloader import load_data
-from dataloaders.ReNet_dataloader import load_data
+from dataloaders.Super_dataloader import load_data
 from torch.utils import data as data_utils
 from tqdm import tqdm
 from torchsummary import summary
@@ -26,6 +26,8 @@ parser.add_argument('--root_data', help='data folder path', default="../training
 parser.add_argument('--fold_data', help='fold files path', default="../Data_files/", type=str)
 
 parser.add_argument("--weight_root", help="weight folder", default="/content//gdrive/MyDrive/colab-data/weights/", type=str)
+
+parser.add_argument("--eval_root", help="results folder", default="/content//gdrive/MyDrive/colab-data/Dice/", type=str)
 
 parser.add_argument("--model_name", help="name of the weight file", required=True, type=str)
 
@@ -71,6 +73,25 @@ def save_samples(test_data_loader, device, model):
 			if count > 100:
 				return
 
+def test(test_data_loader, device, model):
+	prog_bar = tqdm(enumerate(test_data_loader))
+	dice_list = []
+
+	model.eval()
+
+	for step, data in prog_bar:
+
+		# Move data to CUDA device
+		inputs, gt = data[0], data[1]
+		inputs = inputs.to(device)
+		gt = gt.to(device)
+
+		dices = model.dice_score(inputs, gt)
+		dice_list.extend(dices)
+		prog_bar.set_description('Test Dice loss: {:.4f}'.format(sum(dice_list)/len(dice_list)))
+
+	return dice_list
+
 if __name__ == "__main__":
 	fold = args.fold
 	model_name = args.model_name
@@ -79,6 +100,7 @@ if __name__ == "__main__":
 	FOLD_PATH = args.fold_data + 'fold_files/annfiles_fold' #"fold_struct/fold"
 	ROOT_WEIGHTPATH = args.weight_root
 	Vid_to_IMG_PATH = args.fold_data + "videoId_to_imgIdx/"
+	EVAL_PATH = args.eval_root
 	
 	WEIGTH_PATH = ROOT_WEIGHTPATH + model_name + ".pth"
 
@@ -99,10 +121,10 @@ if __name__ == "__main__":
 	model.load_state_dict(torch.load(WEIGTH_PATH))
 
 	# Test!
-	#res = test(test_data_loader, device, model)
-	#with open(EVAL_PATH+ model_name +'_test_dice.txt', 'w') as f_test:
-	#	for item in res:
-	#		f_test.write("%s\n" % item)
+	res = test(test_data_loader, device, model)
+	with open(EVAL_PATH+ model_name +'_test_dice.txt', 'w') as f_test:
+		for item in res:
+			f_test.write("%s\n" % item)
 
 	# Save samples
 	save_samples(test_data_loader, device, model)

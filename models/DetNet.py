@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import math
 from .conv import Conv2dTranspose, Conv2d
 import numpy as np
+import cv2
 
 '''
 Model to detect glottis presence, masks generated from np(seg) == 0 
@@ -66,3 +67,29 @@ class DetNet(nn.Module):
 		logloss = nn.BCELoss()
 		loss = logloss(p, g) 
 		return loss
+
+	def dice_score(self, X, Y):
+		preds, _ = self.forward(X)
+		preds = preds.cpu().detach().numpy()
+		Y = Y.cpu().detach().numpy()
+		batch_size = preds.shape[0]
+		dices = []
+		preds = preds > (1.0 / (preds.shape[-1] * preds.shape[-2]))
+		preds = preds.astype(int)
+
+
+		for i in range(0, batch_size):
+			pred = preds[i, :, :, :]
+			gt = Y[i, :, :, :]
+			pred = np.transpose(pred, (1, 2, 0))
+			gt = np.transpose(gt, (1, 2, 0))
+			pred = cv2.resize(pred, (gt.shape[0], gt.shape[1]))
+
+			print(pred.shape, gt.shape)
+
+			if (np.sum(gt) == 0 and np.sum(pred) == 0):
+				dice_val = 1
+			else:
+				dice_val = 2.0 * np.sum(np.multiply(pred,gt))/(np.sum(pred)+np.sum(gt)+0.000000000000001)
+			dices.append(dice_val)
+		return dices
