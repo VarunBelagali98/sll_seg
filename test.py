@@ -107,6 +107,7 @@ if __name__ == "__main__":
 	# Dataset and Dataloader setup
 	#test_dataset = load_data(fold, 2, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH, Vid_to_IMG_PATH=Vid_to_IMG_PATH)
 	test_dataset = load_data(fold, 2, TRAINING_PATH=TRAINING_PATH, FOLD_PATH=FOLD_PATH)
+	test_dataset.datalist = list(range(55750, 55750+3500))
 
 	test_data_loader = data_utils.DataLoader(
 		test_dataset, batch_size=batch_size)
