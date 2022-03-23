@@ -8,6 +8,13 @@ from tqdm import tqdm
 from torchsummary import summary
 import argparse
 from models.DetNet import DetNet
+import random
+import numpy as np
+
+torch.manual_seed(0)
+random.seed(0)
+np.random.seed(0)
+
 
 use_cuda = torch.cuda.is_available()
 
