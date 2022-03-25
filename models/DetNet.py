@@ -127,7 +127,8 @@ class DetNet(nn.Module):
 			gt = Y[i, :, :, :]
 			pred = np.transpose(pred, (1, 2, 0))
 			gt = np.transpose(gt, (1, 2, 0))
-			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))
+			gt = gt[:, :, 0] * 255
+			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))/ 255
 			
 			#pred = pred[:, :, 0]
 			#pred = self.mask_to_box(pred)
