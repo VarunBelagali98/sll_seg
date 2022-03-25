@@ -69,28 +69,26 @@ class DetNet(nn.Module):
 		loss = logloss(p, g) 
 		return loss
 
-	def mask_to_box(self, im):
+	def mask_to_box(self, im, scale=False, fil=False):
 		#im = im[:, :, 0]
 
-		labels_mask = label(im)
-		regions = regionprops(labels_mask)
-		regions.sort(key=lambda x: x.area, reverse=True)
-		if len(regions) > 1:
-			for rg in regions[1:]:
-				labels_mask[rg.coords[:,0], rg.coords[:,1]] = 0
+		if fil == True:
+			labels_mask = label(im)
+			regions = regionprops(labels_mask)
+			regions.sort(key=lambda x: x.area, reverse=True)
+			if len(regions) > 1:
+				for rg in regions[1:]:
+					labels_mask[rg.coords[:,0], rg.coords[:,1]] = 0
 				
-			labels_mask[labels_mask!=0] = 1
-			im = labels_mask
-
-
-
+				labels_mask[labels_mask!=0] = 1
+				im = labels_mask
 
 		xaxis = np.sum(im,axis=0)
 		yaxis = np.sum(im,axis=1)
 		xs = np.nonzero(xaxis)[0]
 		ys = np.nonzero(yaxis)[0]
 
-		positive_mask = np.zeros((28, 28))
+		positive_mask = np.zeros((im.shape[0], im.shape[1]))
 
 		if ((len(xs)<1) or (len(ys)<1)):
 			x0,x1,y0,y1 = 0,0,0,0
@@ -100,8 +98,16 @@ class DetNet(nn.Module):
 			y0 = ys[0]
 			y1 = ys[-1]
 
+			if scale == True:
+				x0 = int(x0 * 224 / im.shape[0])
+				x1 = int(x1 * 224 / im.shape[0])
+				y0 = int(y0 * 224 / im.shape[0])
+				y1 = int(y1 * 224 / im.shape[0])
+
+
 			positive_mask[y0:y1+1, x0:x1+1] = 1
-		print(np.sum(im), np.sum(positive_mask))
+		#print(np.sum(im), np.sum(positive_mask))
+		print(scale, x0, x1, y0, y1)
 		return positive_mask
 
 	def dice_score(self, x, y):
@@ -130,9 +136,9 @@ class DetNet(nn.Module):
 			gt = gt[:, :, 0] * 255
 			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))/ 255
 			
-			#pred = pred[:, :, 0]
-			#pred = self.mask_to_box(pred)
-			#gt = self.mask_to_box(gt)
+			pred = pred[:, :, 0]
+			pred = self.mask_to_box(pred)
+			gt = self.mask_to_box(gt)
 
 			dice_val = self.dice_score(pred, gt)
 			dices.append(dice_val)
