@@ -86,7 +86,7 @@ def test(test_data_loader, device, model):
 		inputs = inputs.to(device)
 		gt = gt.to(device)
 
-		dices = model.dice_score(inputs, gt)
+		dices = model.cal_score(inputs, gt)
 		dice_list.extend(dices)
 		prog_bar.set_description('Test Dice loss: {:.4f}'.format(sum(dice_list)/len(dice_list)))
 

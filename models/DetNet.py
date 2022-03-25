@@ -68,7 +68,36 @@ class DetNet(nn.Module):
 		loss = logloss(p, g) 
 		return loss
 
-	def dice_score(self, X, Y):
+	def mask_to_box(self, im):
+		im = im[:, :, 0]
+		xaxis = np.sum(im,axis=0)
+		yaxis = np.sum(im,axis=1)
+		xs = np.nonzero(xaxis)[0]
+		ys = np.nonzero(yaxis)[0]
+
+		positive_mask = np.zeros((28, 28))
+
+		if ((len(xs)<1) or (len(ys)<1)):
+			x0,x1,y0,y1 = 0,0,0,0
+		else:
+			x0 = xs[0]
+			x1 = xs[-1]
+			y0 = ys[0]
+			y1 = ys[-1]
+
+			positive_mask[y0:y1+1, x0:x1+1] = 1
+		print(np.sum(im), np.sum(positive_mask))
+		return positive_mask
+
+	def dice_score(self, x, y):
+		if (np.sum(x) == 0 and np.sum(y) == 0):
+			dice_val = 1
+		else:
+			dice_val = 2.0 * np.sum(np.multiply(x,y))/(np.sum(x)+np.sum(y)+0.000000000000001)
+		return dice_val
+
+
+	def cal_score(self, X, Y):
 		preds, _ = self.forward(X)
 		preds = preds.cpu().detach().numpy()
 		Y = Y.cpu().detach().numpy()
@@ -85,11 +114,9 @@ class DetNet(nn.Module):
 			gt = np.transpose(gt, (1, 2, 0))
 			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))
 
-			print(pred.shape, gt.shape)
+			pred = self.mask_to_box(pred)
+			gt = self.mask_to_box(gt)
 
-			if (np.sum(gt) == 0 and np.sum(pred) == 0):
-				dice_val = 1
-			else:
-				dice_val = 2.0 * np.sum(np.multiply(pred,gt))/(np.sum(pred)+np.sum(gt)+0.000000000000001)
+			dice_val = self.dice_score(pred, gt)
 			dices.append(dice_val)
 		return dices
