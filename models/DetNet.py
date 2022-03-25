@@ -5,6 +5,7 @@ import math
 from .conv import Conv2dTranspose, Conv2d
 import numpy as np
 import cv2
+from skimage.measure import regionprops,label
 
 '''
 Model to detect glottis presence, masks generated from np(seg) == 0 
@@ -70,6 +71,20 @@ class DetNet(nn.Module):
 
 	def mask_to_box(self, im):
 		#im = im[:, :, 0]
+
+		labels_mask = label(im)
+		regions = regionprops(labels_mask)
+		regions.sort(key=lambda x: x.area, reverse=True)
+		if len(regions) > 1:
+			for rg in regions[1:]:
+				labels_mask[rg.coords[:,0], rg.coords[:,1]] = 0
+				
+			labels_mask[labels_mask!=0] = 1
+			im = labels_mask
+
+
+
+
 		xaxis = np.sum(im,axis=0)
 		yaxis = np.sum(im,axis=1)
 		xs = np.nonzero(xaxis)[0]
@@ -113,8 +128,9 @@ class DetNet(nn.Module):
 			pred = np.transpose(pred, (1, 2, 0))
 			gt = np.transpose(gt, (1, 2, 0))
 			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))
-
-			pred = self.mask_to_box(pred[:, :, 0])
+			
+			pred = pred[:, :, 0]
+			pred = self.mask_to_box(pred)
 			gt = self.mask_to_box(gt)
 
 			dice_val = self.dice_score(pred, gt)
