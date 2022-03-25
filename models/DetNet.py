@@ -130,8 +130,8 @@ class DetNet(nn.Module):
 			gt = cv2.resize(gt, (pred.shape[0], pred.shape[1]))
 			
 			pred = pred[:, :, 0]
-			pred = self.mask_to_box(pred)
-			gt = self.mask_to_box(gt)
+			#pred = self.mask_to_box(pred)
+			#gt = self.mask_to_box(gt)
 
 			dice_val = self.dice_score(pred, gt)
 			dices.append(dice_val)
