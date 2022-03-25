@@ -88,7 +88,7 @@ class DetNet(nn.Module):
 		xs = np.nonzero(xaxis)[0]
 		ys = np.nonzero(yaxis)[0]
 
-		positive_mask = np.zeros((im.shape[0], im.shape[1]))
+		positive_mask = np.zeros((224, 224))
 
 		if ((len(xs)<1) or (len(ys)<1)):
 			x0,x1,y0,y1 = 0,0,0,0
