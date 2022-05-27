@@ -50,16 +50,17 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 			model.train()
 
 			# get the inputs; data is a list of [inputs, labels]
-			x1, x2 = data[0], data[1]
+			x1, x2, x3 = data[0], data[1], data[2]
 			x1 = x1.to(device)
 			x2 = x2.to(device)
+			x3 = x3.to(device)
 
 			# zero the parameter gradients
 			optimizer.zero_grad()
 
 			# forward + backward + optimize
 			#outputs = model(inputs)
-			loss = model.cal_loss(x1, x2, device)
+			loss = model.cal_loss(x1, x2, x3, device)
 			loss.backward()
 			optimizer.step()
 
@@ -95,12 +96,13 @@ def validate(val_data_loader, epoch, device, model):
 	loss_list = []
 	for step, data in prog_bar:
 		# Move data to CUDA device
-		x1, x2 = data[0], data[1]
+		x1, x2, x3 = data[0], data[1]
 		x1 = x1.to(device)
 		x2 = x2.to(device)
+		x3 = x3.to(device)
 
 		model.eval()
-		val_loss = model.cal_loss(x1, x2, device)
+		val_loss = model.cal_loss(x1, x2, x3, device)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
 		
 		prog_bar.set_description('loss: {:.4f}'.format(running_loss))

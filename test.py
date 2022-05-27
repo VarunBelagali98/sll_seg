@@ -10,7 +10,7 @@ import argparse
 import numpy as np 
 import cv2
 import os
-from models.DetNet import DetNet
+from models.unet import UNet as M
 import matplotlib.pyplot as plt 
 
 use_cuda = torch.cuda.is_available()
@@ -49,14 +49,14 @@ def save_samples(test_data_loader, device, model):
 		x1 = x1.to(device)
 		x2 = x2.to(device)
 
-		preds, _ = model.forward(x1)
+		preds = model.forward(x1)
 
 		x1 = x1.cpu().detach().numpy()
 		
 		for pred_i in range(1):
 			pred = preds
 			pred = pred.cpu().detach().numpy()
-			pred = pred > (1.0 / (pred.shape[-1] * pred.shape[-2]))
+			pred = pred > 0.5 #(1.0 / (pred.shape[-1] * pred.shape[-2]))
 			#pred = np.argmax(pred, axis=1)
 			pred = pred.astype(int)
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 	device = torch.device("cuda" if use_cuda else "cpu")
 
 	# Model
-	model = DetNet().to(device)
+	model = M().to(device)
 	#summary(model, (1, 224, 224))
 
 	# Load weights
@@ -123,9 +123,9 @@ if __name__ == "__main__":
 
 	# Test!
 	res = test(test_data_loader, device, model)
-	with open(EVAL_PATH+ model_name +'_test_dice.txt', 'w') as f_test:
-		for item in res:
-			f_test.write("%s\n" % item)
+	#with open(EVAL_PATH+ model_name +'_test_dice.txt', 'w') as f_test:
+	#	for item in res:
+	#		f_test.write("%s\n" % item)
 
 	# Save samples
 	save_samples(test_data_loader, device, model)
