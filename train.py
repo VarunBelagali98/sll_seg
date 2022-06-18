@@ -36,6 +36,7 @@ parser.add_argument("--model_name", help="name of the weight file", required=Tru
 
 args = parser.parse_args()
 
+
 def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH):
 	train_losses = []        
 	val_losses = []

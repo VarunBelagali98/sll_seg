@@ -44,6 +44,7 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 	print("")
 	for epoch in range(nepochs):  # loop over the dataset multiple times
 		running_loss = 0.0
+		running_acc = 0.0
 		print("Epoch {} training".format(epoch))
 		prog_bar = tqdm(enumerate(train_data_loader))
 		for step, data in prog_bar:
@@ -60,13 +61,14 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 
 			# forward + backward + optimize
 			#outputs = model(inputs)
-			loss = model.cal_loss(x1, x2, x3, device)
+			loss, acc = model.cal_loss(x1, x2, x3, device)
 			loss.backward()
 			optimizer.step()
 
 			# print statistics
 			running_loss = ((running_loss * step) + loss.item())/(step+1)
-			prog_bar.set_description('loss: {:.4f}'.format(running_loss))
+			running_acc = ((running_acc * step) + acc.item())/(step+1)
+			prog_bar.set_description('loss: %.4f, acc: %.4f' % (running_loss, running_acc))
 		
 		train_losses.append(running_loss)
 		with torch.no_grad():
@@ -90,22 +92,24 @@ def train(device, model, trainloader, valloader, optimizer, nepochs, WEIGTH_PATH
 
 def validate(val_data_loader, epoch, device, model):
 	running_loss = 0
+	running_acc = 0
 	step = 0
 	print("Epoch {} validation".format(epoch))
 	prog_bar = tqdm(enumerate(val_data_loader))
 	loss_list = []
 	for step, data in prog_bar:
 		# Move data to CUDA device
-		x1, x2, x3 = data[0], data[1]
+		x1, x2, x3 = data[0], data[1], data[2]
 		x1 = x1.to(device)
 		x2 = x2.to(device)
 		x3 = x3.to(device)
 
 		model.eval()
-		val_loss = model.cal_loss(x1, x2, x3, device)
+		val_loss, val_acc = model.cal_loss(x1, x2, x3, device)
 		running_loss = ((running_loss * step) + val_loss.item())/(step+1)
+		running_acc = ((running_acc * step) + val_acc.item())/(step+1)
 		
-		prog_bar.set_description('loss: {:.4f}'.format(running_loss))
+		prog_bar.set_description('loss: %.4f, acc: %.4f' % (running_loss, running_acc))
 		
 		loss_list.append(val_loss.item())
 	return running_loss

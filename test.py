@@ -119,13 +119,16 @@ if __name__ == "__main__":
 	#summary(model, (1, 224, 224))
 
 	# Load weights
+	print(WEIGTH_PATH)
 	model.load_state_dict(torch.load(WEIGTH_PATH))
 
 	# Test!
-	res = test(test_data_loader, device, model)
+	with torch.no_grad():
+		res = test(test_data_loader, device, model)
 	#with open(EVAL_PATH+ model_name +'_test_dice.txt', 'w') as f_test:
 	#	for item in res:
 	#		f_test.write("%s\n" % item)
 
 	# Save samples
-	save_samples(test_data_loader, device, model)
+	with torch.no_grad():
+		save_samples(test_data_loader, device, model)

@@ -66,12 +66,12 @@ class load_data(torch.utils.data.Dataset):
 		path = self.FOLD_PATH
 		pos=np.genfromtxt(path+"glottis"+'.txt',dtype='str')
 		neg=np.genfromtxt(path+"noglottis"+'.txt',dtype='str')
-		pos_train_size = 7500
+		pos_train_size = 2500
 		neg_train_size = 2500
 		val_size = neg.shape[0] - neg_train_size
 		if state == 'train':
 			poslist = [(x, 1) for x in pos[:pos_train_size]]
-			neglist = [(x, 0) for x in neg[:neg_train_size]]
+			neglist = [(x, 0) for x in neg[:neg_train_size]] * int(pos_train_size/neg_train_size)
 		else:
 			poslist = [(x, 1) for x in pos[pos_train_size:pos_train_size + val_size]]
 			neglist = [(x, 0) for x in neg[neg_train_size:]]

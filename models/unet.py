@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import math
 from .conv import Conv2dTranspose, Conv2d
 import numpy as np
+from torchmetrics import Accuracy
 
 class UNet(nn.Module):
 	def __init__(self):
@@ -31,7 +32,7 @@ class UNet(nn.Module):
 
 
 		self.decoder_blocks = nn.ModuleList([
-			nn.Sequential(Conv2d(1024, 512, kernel_size=3),
+			nn.Sequential(Conv2d(1024, 512, kernel_size=3),        #1024, 512
 			nn.Upsample( scale_factor=(2,2))
 			),
 
@@ -59,6 +60,25 @@ class UNet(nn.Module):
 			nn.BatchNorm2d(1),
 			nn.Sigmoid()) 
 
+		self.pairloss_layer = nn.Conv2d(1, 8, kernel_size=3, stride=1, padding=0, bias=False)
+		self.pairloss_layer.weight = nn.parameter.Parameter(data=torch.FloatTensor(self.pair_weights(64)), requires_grad=False)
+		#self.pairloss_layer.requires_grad_(False)
+
+	def pair_weights(self, dim):
+		f = np.zeros((8, dim ,3,3)) #dim = 1
+		f[:,:,1,1] = 1
+		c = 0
+		for i in range(3):
+			f[c, :, 0, i] = -1
+			c = c+1
+		for i in range(3):
+			f[c,:, 2, i] = -1
+			c = c+1
+		f[c, :, 1, 0] = -1
+		c = c + 1
+		f[c, :, 1, 2] = -1
+		return f
+
 	def forward(self, x):
 		feats = []
 	
@@ -79,7 +99,7 @@ class UNet(nn.Module):
 
 
 		output = self.output_block(x)
-		return output
+		return output, x
 
 	def cal_loss0(self, x, g, device):
 		p = self.forward(x)
@@ -90,12 +110,15 @@ class UNet(nn.Module):
 		loss = logloss(max_p, g) 
 		return loss
 
-	def max_loss(self, p, g):
+	def max_loss(self, p, g, device):
 		p = p.view(p.shape[0], -1)
 		max_p = torch.max(p, dim=1, keepdim=True).values
 		logloss = nn.BCELoss()
-		loss = logloss(max_p, g) 
-		return loss
+		loss = logloss(max_p, g)
+		accfunc = Accuracy(threshold=0.5)
+		accfunc = accfunc.to(device)
+		acc = accfunc(max_p, g.int())
+		return loss, acc
 
 	def proj_loss(self, p1, p2):
 		cosine = nn.CosineSimilarity(dim=-1, eps=1e-08)
@@ -108,20 +131,32 @@ class UNet(nn.Module):
 
 		return torch.mean(1-cosine(p1_m1, p2_m2) + 1 - cosine(p1_m2, p2_m1))
 
-	def cal_loss(self, x1, x2, g, device):
-		p1 = self.forward(x1)
-		p2 = self.forward(x2)
-
-		loss_m = self.max_loss(p1, g) + self.max_loss(p2, g)
-		loss_p = self.proj_loss(p1, p2)
-
-		loss = loss_m + 0.5 * loss_p
-
+	def pair_loss(self, p):
+		p = torch.abs(p)
+		loss = torch.sum(p, axis=0)
+		loss = torch.mean(loss)
 		return loss
 
 
+	def cal_loss(self, x1, x2, g, device):
+		p1, x = self.forward(x1)
+		#p2 = self.forward(x2)
+
+
+		pair_diff1 = self.pairloss_layer(x)
+		#pair_diff2 = self.pairloss_layer(p2)
+
+		loss_m, acc = self.max_loss(p1, g, device) #+ self.max_loss(p2, g)
+		#loss_p = self.proj_loss(p1, p2)
+		pairloss = self.pair_loss(pair_diff1) #+ self.pair_loss(pair_diff2)
+
+		loss = loss_m + (0.01 * pairloss) #+ (0.1 * loss_p) 
+
+		return loss, acc
+
+
 	def cal_score(self, X, Y):
-		preds = self.forward(X)
+		preds, _ = self.forward(X)
 		preds = preds.cpu().detach().numpy()
 		Y = Y.cpu().detach().numpy()
 		batch_size = preds.shape[0]
@@ -139,6 +174,7 @@ class UNet(nn.Module):
 			else:
 				dice_val = 2.0 * np.sum(np.multiply(pred,gt))/(np.sum(pred)+np.sum(gt)+0.000000000000001)
 				iou = np.sum(np.multiply(pred,gt))/(np.sum(pred)+np.sum(gt)- np.sum(np.multiply(pred,gt)) +0.000000000000001)
+			#dice_val = np.sum(gt) - np.sum(pred)
 			dices.append(dice_val)
 		return dices
 
