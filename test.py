@@ -49,7 +49,7 @@ def save_samples(test_data_loader, device, model):
 		x1 = x1.to(device)
 		x2 = x2.to(device)
 
-		preds = model.forward(x1)
+		preds, _ = model.forward(x1)
 
 		x1 = x1.cpu().detach().numpy()
 		

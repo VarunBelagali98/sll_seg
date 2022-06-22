@@ -120,6 +120,19 @@ class UNet(nn.Module):
 		acc = accfunc(max_p, g.int())
 		return loss, acc
 
+	def cam_loss(self, p, g, device):
+		#p = p.view(p.shape[0], -1)
+		#max_p = torch.max(p, dim=1, keepdim=True).values
+		avgpool = nn.AvgPool2d(224, padding=0)
+		avg_p = avgpool(p)
+		avg_p = self.output_block(avg_p)
+		logloss = nn.BCELoss()
+		loss = logloss(avg_p, g)
+		accfunc = Accuracy(threshold=0.5)
+		accfunc = accfunc.to(device)
+		acc = accfunc(avg_p, g.int())
+		return loss, acc
+
 	def proj_loss(self, p1, p2):
 		cosine = nn.CosineSimilarity(dim=-1, eps=1e-08)
 		p1_m1 = torch.max(p1, dim=2, keepdim=False).values
@@ -143,14 +156,14 @@ class UNet(nn.Module):
 		#p2 = self.forward(x2)
 
 
-		pair_diff1 = self.pairloss_layer(x)
+		#pair_diff1 = self.pairloss_layer(x)
 		#pair_diff2 = self.pairloss_layer(p2)
 
-		loss_m, acc = self.max_loss(p1, g, device) #+ self.max_loss(p2, g)
+		loss_m, acc = self.cam_loss(x, g, device) #+ self.max_loss(p2, g)
 		#loss_p = self.proj_loss(p1, p2)
-		pairloss = self.pair_loss(pair_diff1) #+ self.pair_loss(pair_diff2)
+		#pairloss = self.pair_loss(pair_diff1) #+ self.pair_loss(pair_diff2)
 
-		loss = loss_m + (0.01 * pairloss) #+ (0.1 * loss_p) 
+		loss = loss_m #+ (0.01 * pairloss) #+ (0.1 * loss_p) 
 
 		return loss, acc
 
@@ -161,12 +174,16 @@ class UNet(nn.Module):
 		Y = Y.cpu().detach().numpy()
 		batch_size = preds.shape[0]
 		dices = []
-
-		preds = preds > 0.5
-		preds = preds.astype(int)
+		#preds = preds / np.max(preds)
+		#preds = preds > 0.5
+		#preds = preds.astype(int)
 
 		for i in range(0, batch_size):
 			pred = preds[i, :, :, :]
+			pred = pred / np.max(pred)
+			pred = pred > 0.5
+			pred = pred.astype(int)
+
 			gt = Y[i, :, :, :]
 			if (np.sum(gt) == 0 and np.sum(pred) == 0):
 				dice_val = 1
