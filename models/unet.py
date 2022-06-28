@@ -166,36 +166,30 @@ class UNet(nn.Module):
 		#p1, x = self.forward(x1)
 		x1_f1 = torch.flip(x1, dims=[2])
 		x1_f2 = torch.flip(x1, dims=[3])
-		x1_f12 =  torch.flip(x1, dims=[2, 3])
-		#p2 = self.forward(x2)
 
 		p1, x = self.forward(x1)
 		p1_f1, _ = self.forward(x1_f1)
 		p1_f2, _ = self.forward(x1_f2)
-		p1_f12, _ = self.forward(x1_f12)
 
 		p1_f1 = torch.flip(p1_f1, dims=[2])
 		p1_f2 = torch.flip(p1_f1, dims=[3])
-		p1_f12 = torch.flip(p1_f12, dims=[2, 3])
 
 
-		pair_diff1 = self.pairloss_layer(p1)
-		pair_diff2 = self.pairloss_layer(p1_f1)
-		pair_diff3 = self.pairloss_layer(p1_f2)
-		pair_diff4 = self.pairloss_layer(p1_f12)
+		#pair_diff1 = self.pairloss_layer(p1)
+		#pair_diff2 = self.pairloss_layer(p1_f1)
+		#pair_diff3 = self.pairloss_layer(p1_f2)
 
 		loss_m1, acc = self.max_loss(p1, g, device)
 		loss_m2, _ = self.max_loss(p1_f1, g, device)
 		loss_m3, _ = self.max_loss(p1_f2, g, device)
-		loss_m4, _ = self.max_loss(p1_f12, g, device)
 
-		loss_m = (loss_m1 + loss_m2 + loss_m3 + loss_m4) / 4 
+		loss_m = (loss_m1 + loss_m2 + loss_m3) / 4 
 		#loss_p = self.proj_loss(p1, p2)
-		pairloss = self.pair_loss(pair_diff1) + self.pair_loss(pair_diff2) + self.pair_loss(pair_diff3) + self.pair_loss(pair_diff4)
+		#pairloss = self.pair_loss(pair_diff1) + self.pair_loss(pair_diff2) + self.pair_loss(pair_diff3) 
 
-		dice_l = self.dice_loss(p1, p1_f1) + self.dice_loss(p1, p1_f2) + self.dice_loss(p1, p1_f12) + self.dice_loss(p1_f1, p1_f2) + self.dice_loss(p1_f1, p1_f12) + self.dice_loss(p1_f2, p1_f12) 
+		dice_l = self.dice_loss(p1, p1_f1) + self.dice_loss(p1, p1_f2) + self.dice_loss(p1_f1, p1_f2) 
 
-		loss = loss_m + (0.01 * pairloss) + (0.1 * dice_l) 
+		loss = loss_m + (0.1 * dice_l) 
 
 		return loss, acc
 
