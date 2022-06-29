@@ -175,21 +175,21 @@ class UNet(nn.Module):
 		p1_f2 = torch.flip(p1_f1, dims=[3])
 
 
-		#pair_diff1 = self.pairloss_layer(p1)
-		#pair_diff2 = self.pairloss_layer(p1_f1)
-		#pair_diff3 = self.pairloss_layer(p1_f2)
+		pair_diff1 = self.pairloss_layer(p1)
+		pair_diff2 = self.pairloss_layer(p1_f1)
+		pair_diff3 = self.pairloss_layer(p1_f2)
 
 		loss_m1, acc = self.max_loss(p1, g, device)
 		loss_m2, _ = self.max_loss(p1_f1, g, device)
 		loss_m3, _ = self.max_loss(p1_f2, g, device)
 
-		loss_m = (loss_m1 + loss_m2 + loss_m3) / 4 
+		loss_m = (loss_m1 + loss_m2 + loss_m3) / 3 
 		#loss_p = self.proj_loss(p1, p2)
-		#pairloss = self.pair_loss(pair_diff1) + self.pair_loss(pair_diff2) + self.pair_loss(pair_diff3) 
+		pairloss = self.pair_loss(pair_diff1) + self.pair_loss(pair_diff2) + self.pair_loss(pair_diff3) 
 
 		dice_l = self.dice_loss(p1, p1_f1) + self.dice_loss(p1, p1_f2) + self.dice_loss(p1_f1, p1_f2) 
 
-		loss = loss_m + (0.1 * dice_l) 
+		loss = loss_m + (0.01 * pairloss) + (0.1 * dice_l) 
 
 		return loss, acc
 

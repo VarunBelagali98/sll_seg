@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torch.optim as optim
 #from dataloader import load_data
-from dataloaders.DetNet_dataloader import load_data
+from dataloaders.DetNet_dataloader_aug import load_data
 from torch.utils import data as data_utils
 from tqdm import tqdm
 from torchsummary import summary
